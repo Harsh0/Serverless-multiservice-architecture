@@ -1,0 +1,152 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+frameworkVersion: "=1.24.1"
+service: UserService
+provider:
+  name: aws
+  runtime: nodejs6.10
+  # specify profile set via aws configure --profile profileName default is "default"
+  profile: default
+  region: us-east-1
+  # memorySize optional field size in MB
+  memorySize: 256
+  # timeout optional field, size in Seconds
+  timeout: 10
+# you can define service wide environment variables here
+  environment:
+    # You can put environmemnt variable here also you can put in secret file
+    # Secret file need to be gitignore and enrypted secret file will be commit
+    # So that team wise synchronization of environment variable is possible
+    # For that plugin called "serverless-secrets-plugin" need to use
+    MONGO_URI: ${file(../secrets.${opt:stage, self:provider.stage}.yml):MONGO_URI}
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:ListBucket"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
+
+# You can define plugin here and install using npm
+# serverless-domain-manager is for setting up custom domain for your api
+# serverless-secrets-plugin is for encrypting secret file for sync between team member for config variable changes
+plugins:
+  - serverless-domain-manager
+  - serverless-secrets-plugin
+
+# you can add packaging information here
+# Set Package Property if your service contain more than one lambda function
+# with their own dependency and you dont want to mix code 
+package: 
+  individually: true
+  exclude:
+  #exclude all files and folder, we will specifically include in every function
+    - ./**
+# In custom, you can set custom variable that you can use in file anywhere
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  domains:
+    # different stages name, can have multiple domains set for each stage
+    # Certificate for that website should be there in ACM(Amazon Ceritificate Manager)
+    prod: api.yourwebsite.com
+    staging: staging.api.yourwebsite.com
+    dev: dev.api.yourwebsite.com
+  customDomain:
+    # for base path mapping
+    basePath: "user"
+    domainName: ${self:custom.domains.${self:custom.stage}}
+    stage: "${self:custom.stage}"
+    createRoute53Record: true
+  secretsFilePathPrefix: ../
+
+
+# Function in your Service
+functions:
+  login:
+    handler: Login/index.handler
+    events:
+      - http:
+          path: /login
+          method: post
+          # private will specify whether your api will be accessible publicly or using apikey set in Api Gateway
+          private: false
+          authorizer: 
+            # arn of authorizer you can set 
+            # name: authorizer
+            arn: arn:aws:lambda:us-east-1:AWS_ACCOUNT_ID:function:UserService-dev-authorizer
+            # resultTtlinSeconds will specify cache timing for authorizer
+            # If we set to 60, so authorizer will hit only once in 60 Seconds for same token
+            resultTtlInSeconds: 60
+            # here you can set your identity source from which token will be extracted to pass to authorizer function
+            # in this case it is x-access-token field in my request header
+            identitySource: method.request.header.x-access-token
+            type: token
+  authorizer:
+      handler: Authorizer/index.handler
+
+#    The following are a few example events you can configure
+#    NOTE: Please make sure to change your handler code to work with those events
+#    Check the event documentation for details
+#    events:
+#      - http:
+#          path: users/create
+#          method: get
+#      - s3: ${env:BUCKET}
+#      - schedule: rate(10 minutes)
+#      - sns: greeter-topic
+#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - alexaSkill
+#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
+#      - iot:
+#          sql: "SELECT * FROM 'some_topic'"
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
+#      - cloudwatchLog: '/aws/lambda/hello'
+#      - cognitoUserPool:
+#          pool: MyUserPool
+#          trigger: PreSignUp
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
