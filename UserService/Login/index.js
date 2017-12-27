@@ -53,6 +53,8 @@ exports.handler = (event, context, callback) => {
             })
             .then(response => {
                 console.log(response);
+                //destroy databsse connection
+                dbConnection.close();
                 //send response to user
                 done({
                     statusCode: 200,
@@ -73,10 +75,9 @@ exports.handler = (event, context, callback) => {
                     statusCode: err.message ? 500 : 400,
                     body: {
                         // if err.message is not there so that is custom error thrown by our program
-                        message: err.message ? "Error commenting" : err
+                        message: err.message ? "Error Login" : err
                     }
                 });
-                callback("Unauthorized");
             });
         }else{
             // If no username or password

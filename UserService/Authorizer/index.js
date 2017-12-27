@@ -21,12 +21,16 @@ exports.handler = (event, context, callback) => {
         if(!user){
             throw new Error("No User Found");
         }
+        //destroy database connection
+        dbConnection.close();
         //Generate policy for user to invoke Lambda function
         //also send the user information so that next lambda need not to fetch details of authenticated user
         callback(null, generatePolicy('user', 'Allow', event.methodArn, user));
     })
     .catch(err => {
         console.log(err);
+        //destroy database connection
+        dbConnection.close();
         //Send error string "Unauthorized" for send unauthorize to User
         callback("Unauthorized");
     })

@@ -79,6 +79,7 @@ custom:
     domainName: ${self:custom.domains.${self:custom.stage}}
     stage: "${self:custom.stage}"
     createRoute53Record: true
+  # secretFilePathPrefix property allows you to keep secret file outside of your service
   secretsFilePathPrefix: ../
 
 
@@ -86,26 +87,22 @@ custom:
 functions:
   login:
     handler: Login/index.handler
+    description: Function to login by user, provide token for further method calling
     events:
       - http:
           path: /login
           method: post
           # private will specify whether your api will be accessible publicly or using apikey set in Api Gateway
           private: false
-          authorizer: 
-            # arn of authorizer you can set 
-            # name: authorizer
-            arn: arn:aws:lambda:us-east-1:AWS_ACCOUNT_ID:function:UserService-dev-authorizer
-            # resultTtlinSeconds will specify cache timing for authorizer
-            # If we set to 60, so authorizer will hit only once in 60 Seconds for same token
-            resultTtlInSeconds: 60
-            # here you can set your identity source from which token will be extracted to pass to authorizer function
-            # in this case it is x-access-token field in my request header
-            identitySource: method.request.header.x-access-token
-            type: token
+    package:
+      include: 
+        - Login/**
   authorizer:
       handler: Authorizer/index.handler
-
+      description: Common authorizer function that authenticate user's token for all routes
+      package:
+        include: 
+          - Authorizer/**
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
