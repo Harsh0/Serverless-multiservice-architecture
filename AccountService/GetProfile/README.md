@@ -1,4 +1,4 @@
-## Update Profile
+## Get Profile
 
 User can update profile
 
