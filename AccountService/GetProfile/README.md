@@ -1,6 +1,6 @@
 ## Get Profile
 
-User can update profile
+User can get profile
 
 **URL** : `/account/getprofile`
 
