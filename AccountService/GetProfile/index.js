@@ -34,7 +34,7 @@ exports.handler = (event, context, callback) => {
         done({
             statusCode: 200,
             body: {
-                'message': 'Operation Success',
+                'message': 'Success',
                 'profile': userProfile
             }
         });
