@@ -5,7 +5,7 @@ A Serverless application scalaton which include multiple services, use AWS Lambd
 
 Open endpoints require no Authentication.
 
-* [Login](LoginService/Login/README.md) : `POST /login`
+* [Login](UserService/Login/README.md) : `POST /login`
 
 ## Endpoints that require Authentication
 
